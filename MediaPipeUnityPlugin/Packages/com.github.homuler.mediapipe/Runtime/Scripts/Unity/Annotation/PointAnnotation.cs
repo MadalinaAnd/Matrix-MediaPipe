@@ -12,127 +12,153 @@ using mplt = Mediapipe.LocationData.Types;
 namespace Mediapipe.Unity
 {
 #pragma warning disable IDE0065
-  using Color = UnityEngine.Color;
+	using Color = UnityEngine.Color;
 #pragma warning restore IDE0065
 
-  public class PointAnnotation : HierarchicalAnnotation
-  {
-    [SerializeField] private Color _color = Color.green;
-    [SerializeField] private float _radius = 15.0f;
+	public class PointAnnotation : HierarchicalAnnotation
+	{
+		private const float ERROR = 0.01f;
 
-    private void OnEnable()
-    {
-      ApplyColor(_color);
-      ApplyRadius(_radius);
-    }
+		[SerializeField] private Color _color = Color.green;
+		[SerializeField] private float _radius = 15.0f;
 
-    private void OnDisable()
-    {
-      ApplyRadius(0.0f);
-    }
+		private Vector3 lastPosition = Vector3.one * 99f;
 
-    public void SetColor(Color color)
-    {
-      _color = color;
-      ApplyColor(_color);
-    }
+		private void OnEnable()
+		{
+			ApplyColor(_color);
+			ApplyRadius(_radius);
+		}
 
-    public void SetRadius(float radius)
-    {
-      _radius = radius;
-      ApplyRadius(_radius);
-    }
+		private void OnDisable()
+		{
+			ApplyRadius(0.0f);
+		}
 
-    public void Draw(Vector3 position)
-    {
-      SetActive(true); // Vector3 is not nullable
-      transform.localPosition = position;
-    }
+		public void SetColor(Color color)
+		{
+			_color = color;
+			ApplyColor(_color);
+		}
 
-    public void Draw(Landmark target, Vector3 scale, bool visualizeZ = true)
-    {
-      if (ActivateFor(target))
-      {
-        var position = GetScreenRect().GetPoint(target, scale, rotationAngle, isMirrored);
-        if (!visualizeZ)
-        {
-          position.z = 0.0f;
-        }
-        transform.localPosition = position;
-      }
-    }
+		public void SetRadius(float radius)
+		{
+			_radius = radius;
+			ApplyRadius(_radius);
+		}
 
-    public void Draw(NormalizedLandmark target, bool visualizeZ = true)
-    {
-      if (ActivateFor(target))
-      {
-        var position = GetScreenRect().GetPoint(target, rotationAngle, isMirrored);
-        if (!visualizeZ)
-        {
-          position.z = 0.0f;
-        }
-        transform.localPosition = position;
-      }
-    }
+		private void SetPosition(Vector3 position)
+		{
+			var x = Mathf.Abs(transform.localPosition.x - position.x);
+			var y = Mathf.Abs(transform.localPosition.y - position.y);
+			var z = Mathf.Abs(transform.localPosition.z - position.z);
 
-    public void Draw(NormalizedPoint2D target)
-    {
-      if (ActivateFor(target))
-      {
-        var position = GetScreenRect().GetPoint(target, rotationAngle, isMirrored);
-        transform.localPosition = position;
-      }
-    }
+			if (x > ERROR)
+			{
+				transform.localPosition = new Vector3(position.x, transform.localPosition.y, transform.localPosition.z);
+			}
+			if (y > ERROR)
+			{
+				transform.localPosition = new Vector3(transform.localPosition.x, position.y, transform.localPosition.z);
+			}
+			if (z > ERROR)
+			{
+				transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, position.z);
+			}
+		}
 
-    public void Draw(Point3D target, Vector2 focalLength, Vector2 principalPoint, float zScale, bool visualizeZ = true)
-    {
-      if (ActivateFor(target))
-      {
-        var position = GetScreenRect().GetPoint(target, focalLength, principalPoint, zScale, rotationAngle, isMirrored);
-        if (!visualizeZ)
-        {
-          position.z = 0.0f;
-        }
-        transform.localPosition = position;
-      }
-    }
+		public void Draw(Vector3 position)
+		{
+			SetActive(true); // Vector3 is not nullable
 
-    public void Draw(AnnotatedKeyPoint target, Vector2 focalLength, Vector2 principalPoint, float zScale, bool visualizeZ = true)
-    {
-      if (visualizeZ)
-      {
-        Draw(target?.Point3D, focalLength, principalPoint, zScale, true);
-      }
-      else
-      {
-        Draw(target?.Point2D);
-      }
-    }
+			SetPosition(position);
+		}
 
-    public void Draw(mplt.RelativeKeypoint target, float threshold = 0.0f)
-    {
-      if (ActivateFor(target))
-      {
-        Draw(GetScreenRect().GetPoint(target, rotationAngle, isMirrored));
-        SetColor(GetColor(target.Score, threshold));
-      }
-    }
+		public void Draw(Landmark target, Vector3 scale, bool visualizeZ = true)
+		{
+			if (ActivateFor(target))
+			{
+				var position = GetScreenRect().GetPoint(target, scale, rotationAngle, isMirrored);
+				if (!visualizeZ)
+				{
+					position.z = 0.0f;
+				}
+				//HERE
+				SetPosition(position);
+			}
+		}
 
-    private void ApplyColor(Color color)
-    {
-      GetComponent<Renderer>().material.color = color;
-    }
+		public void Draw(NormalizedLandmark target, bool visualizeZ = true)
+		{
+			if (ActivateFor(target))
+			{
+				var position = GetScreenRect().GetPoint(target, rotationAngle, isMirrored);
+				if (!visualizeZ)
+				{
+					position.z = 0.0f;
+				}
+				SetPosition(position);
+			}
+		}
 
-    private void ApplyRadius(float radius)
-    {
-      transform.localScale = radius * Vector3.one;
-    }
+		public void Draw(NormalizedPoint2D target)
+		{
+			if (ActivateFor(target))
+			{
+				var position = GetScreenRect().GetPoint(target, rotationAngle, isMirrored);
+				SetPosition(position);
+			}
+		}
 
-    private Color GetColor(float score, float threshold)
-    {
-      var t = (score - threshold) / (1 - threshold);
-      var h = Mathf.Lerp(90, 0, t) / 360; // from yellow-green to red
-      return Color.HSVToRGB(h, 1, 1);
-    }
-  }
+		public void Draw(Point3D target, Vector2 focalLength, Vector2 principalPoint, float zScale, bool visualizeZ = true)
+		{
+			if (ActivateFor(target))
+			{
+				var position = GetScreenRect().GetPoint(target, focalLength, principalPoint, zScale, rotationAngle, isMirrored);
+				if (!visualizeZ)
+				{
+					position.z = 0.0f;
+				}
+				SetPosition(position);
+			}
+		}
+
+		public void Draw(AnnotatedKeyPoint target, Vector2 focalLength, Vector2 principalPoint, float zScale, bool visualizeZ = true)
+		{
+			if (visualizeZ)
+			{
+				Draw(target?.Point3D, focalLength, principalPoint, zScale, true);
+			}
+			else
+			{
+				Draw(target?.Point2D);
+			}
+		}
+
+		public void Draw(mplt.RelativeKeypoint target, float threshold = 0.0f)
+		{
+			if (ActivateFor(target))
+			{
+				Draw(GetScreenRect().GetPoint(target, rotationAngle, isMirrored));
+				SetColor(GetColor(target.Score, threshold));
+			}
+		}
+
+		private void ApplyColor(Color color)
+		{
+			GetComponent<Renderer>().material.color = color;
+		}
+
+		private void ApplyRadius(float radius)
+		{
+			transform.localScale = radius * Vector3.one;
+		}
+
+		private Color GetColor(float score, float threshold)
+		{
+			var t = (score - threshold) / (1 - threshold);
+			var h = Mathf.Lerp(90, 0, t) / 360; // from yellow-green to red
+			return Color.HSVToRGB(h, 1, 1);
+		}
+	}
 }
