@@ -17,8 +17,11 @@ namespace Mediapipe.Unity
 
 	public class PointListAnnotation : ListAnnotation<PointAnnotation>
 	{
+		public List<PointAnnotation> PointsAnnotation { get; set; } = new List<PointAnnotation>();
+
 		[SerializeField] private Color _color = Color.green;
 		[SerializeField] private float _radius = 15.0f;
+		private int number = 0;
 
 		private void OnValidate()
 		{
@@ -108,6 +111,9 @@ namespace Mediapipe.Unity
 			var annotation = base.InstantiateChild(isActive);
 			annotation.SetColor(_color);
 			annotation.SetRadius(_radius);
+			annotation.name = number.ToString();
+			number++;
+			PointsAnnotation.Add(annotation);
 			return annotation;
 		}
 

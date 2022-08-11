@@ -915,8 +915,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   THRESHOLD: 0.05
-  RATE: 5
-  STEAPS: 20
+  RATE: 60
+  STEAPS: 100
   StartPoint: {fileID: 481593191}
   EndPoint: {fileID: 352624145}
   Target: {fileID: 280319141}
