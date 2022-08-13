@@ -17,7 +17,7 @@ namespace Mediapipe.Unity
 
 	public class PointAnnotation : HierarchicalAnnotation
 	{
-		private const float ERROR = 0.01f;
+		private const float ERROR = 0.0005f;
 
 		[SerializeField] private Color _color = Color.green;
 		[SerializeField] private float _radius = 15.0f;
